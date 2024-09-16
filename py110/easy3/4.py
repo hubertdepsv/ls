@@ -1,0 +1,8 @@
+def double_consonants(string):
+    return ''.join([char + char if (char not in 'aeiuo') and (char.isalpha()) else char for char in list(string)])
+
+# All of these examples should print True
+print(double_consonants('String') == "SSttrrinngg")
+print(double_consonants('Hello-World!') == "HHellllo-WWorrlldd!")
+print(double_consonants('July 4th') == "JJullyy 4tthh")
+print(double_consonants('') == "")
