@@ -31,11 +31,11 @@ def initialize_board():
 def empty_squares(board):
     return [key for key, value in board.items() if value == INITIAL_MARKER]
 
-def return_choice_string(lst):
+def return_choice_string(lst, delimiter=', ', word='and'):
     if len(lst) == 1:
         return lst[0]
     
-    return ', '.join(lst[:-1]) + ' and ' + lst[-1]
+    return f"{delimiter.join(lst[:-1])} {word} {lst[-1]}"
 
 def player_chooses_square(board):
     while True:
