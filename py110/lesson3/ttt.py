@@ -4,7 +4,7 @@ import random
 INITIAL_MARKER = ' '
 HUMAN_MARKER = 'X'
 COMPUTER_MARKER = 'O'
-NUMBER_OF_GAMES = 5
+GAMES_NUMBER = 5
 
 def prompt(message):
     print(f"==> {message}")
@@ -40,7 +40,7 @@ def join_or(lst, delimiter=', ', word='or'):
 
     if len(str_lst) == 1:
         return str_lst[0]
-    
+
     return f"{delimiter.join(str_lst[:-1])} {word} {str_lst[-1]}"
 
 def player_chooses_square(board):
@@ -71,7 +71,7 @@ def detect_winner(board):
                 and board[sq2] == HUMAN_MARKER
                 and board[sq3] == HUMAN_MARKER):
             return 'Player'
-        elif (board[sq1] == COMPUTER_MARKER
+        if (board[sq1] == COMPUTER_MARKER
                 and board[sq2] == COMPUTER_MARKER
                 and board[sq3] == COMPUTER_MARKER):
             return 'Computer'
@@ -88,7 +88,7 @@ def computer_chooses_square(board):
     board[square] = COMPUTER_MARKER
 
 def print_score(score):
-    return f"""Current scores are: 
+    return f"""Current scores are:
                 Player: {score['Player']},
                 Computer: {score['Computer']}"""
 
@@ -119,8 +119,10 @@ def play_tic_tac_toe():
         else:
             prompt("It's a tie!")
 
-        if NUMBER_OF_GAMES in score.values():
-            winner = [key for key, value in score.items() if value == NUMBER_OF_GAMES][0]
+        if GAMES_NUMBER in score.values():
+            winner = [
+                key for key, value in score.items() if value == GAMES_NUMBER
+            ][0]
             prompt(f"This match was won by {winner}! Thanks for playing!")
             # When a match is won the programme will stop
             break
