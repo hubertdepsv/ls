@@ -6,6 +6,12 @@ HUMAN_MARKER = 'X'
 COMPUTER_MARKER = 'O'
 GAMES_NUMBER = 5
 
+WINNING_LINES = [
+    [1, 2, 3], [4, 5, 6], [7, 8, 9],
+    [1, 4, 7], [2, 5, 8], [3, 6, 9],
+    [1, 5, 9], [3, 5, 7]
+]
+
 def prompt(message):
     print(f"==> {message}")
 
@@ -59,13 +65,7 @@ def board_full(board):
     return len(empty_squares(board)) == 0
 
 def detect_winner(board):
-    winning_lines = [
-        [1, 2, 3], [4, 5, 6], [7, 8, 9],
-        [1, 4, 7], [2, 5, 8], [3, 6, 9],
-        [1, 5, 9], [3, 5, 7]
-    ]
-
-    for line in winning_lines:
+    for line in WINNING_LINES:
         sq1, sq2, sq3 = line
         if (board[sq1] == HUMAN_MARKER
                 and board[sq2] == HUMAN_MARKER
@@ -81,10 +81,28 @@ def detect_winner(board):
 def someone_won(board):
     return bool(detect_winner(board))
 
+def find_at_risk_square(board):
+    winning_lines = [
+        [1, 2, 3], [4, 5, 6], [7, 8, 9],
+        [1, 4, 7], [2, 5, 8], [3, 6, 9],
+        [1, 5, 9], [3, 5, 7]
+    ]
+    for line in winning_lines:
+        markers_in_line = [board[square] for square in line]
+        # if 2 keys have a human marker, return the one without
+        if markers_in_line.count(HUMAN_MARKER) == 2:
+            for square in line:
+                if board[square] == INITIAL_MARKER:
+                    return square
+
+    return None
+
 def computer_chooses_square(board):
     if len(empty_squares(board)) == 0:
         return
-    square = random.choice(empty_squares(board))
+    square =  random.choice(empty_squares(board))
+    if find_at_risk_square(board):
+        square = find_at_risk_square(board)
     board[square] = COMPUTER_MARKER
 
 def print_score(score):
