@@ -105,10 +105,10 @@ def computer_chooses_square(board):
     if len(empty_squares(board)) == 0:
         return
 
-    square = find_at_risk_square(board)
+    square = find_at_risk_square(board, 'offensive')
 
     if not square:
-        square = find_at_risk_square(board, 'offensive')
+        square = find_at_risk_square(board, 'defensive')
 
     if not square:
         square = random.choice(empty_squares(board))
