@@ -81,7 +81,11 @@ def detect_winner(board):
 def someone_won(board):
     return bool(detect_winner(board))
 
-def find_at_risk_square(board):
+def find_at_risk_square(board, option='defensive'):
+    if option == 'defensive':
+        marker = HUMAN_MARKER
+    else:
+        marker = COMPUTER_MARKER
     winning_lines = [
         [1, 2, 3], [4, 5, 6], [7, 8, 9],
         [1, 4, 7], [2, 5, 8], [3, 6, 9],
@@ -90,7 +94,7 @@ def find_at_risk_square(board):
     for line in winning_lines:
         markers_in_line = [board[square] for square in line]
         # if 2 keys have a human marker, return the one without
-        if markers_in_line.count(HUMAN_MARKER) == 2:
+        if markers_in_line.count(marker) == 2:
             for square in line:
                 if board[square] == INITIAL_MARKER:
                     return square
@@ -100,9 +104,14 @@ def find_at_risk_square(board):
 def computer_chooses_square(board):
     if len(empty_squares(board)) == 0:
         return
-    square =  random.choice(empty_squares(board))
-    if find_at_risk_square(board):
-        square = find_at_risk_square(board)
+
+    square = find_at_risk_square(board)
+
+    if not square:
+        square = find_at_risk_square(board, 'offensive')
+
+    if not square:
+        square = random.choice(empty_squares(board))
     board[square] = COMPUTER_MARKER
 
 def print_score(score):
