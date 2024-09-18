@@ -4,12 +4,14 @@ import random
 INITIAL_MARKER = ' '
 HUMAN_MARKER = 'X'
 COMPUTER_MARKER = 'O'
+NUMBER_OF_GAMES = 5
 
 def prompt(message):
     print(f"==> {message}")
 
-def display_board(board):
+def display_board(board, score):
     os.system('clear')
+    prompt(print_score(score))
     prompt(f"You are {HUMAN_MARKER}. Computer is {COMPUTER_MARKER}.")
     print('')
     print('     |     |')
@@ -31,16 +33,20 @@ def initialize_board():
 def empty_squares(board):
     return [key for key, value in board.items() if value == INITIAL_MARKER]
 
-def return_choice_string(lst, delimiter=', ', word='and'):
-    if len(lst) == 1:
-        return lst[0]
+def join_or(lst, delimiter=', ', word='or'):
+    str_lst = [str(num) for num in lst]
+    if len(str_lst) == 0:
+        return ""
+
+    if len(str_lst) == 1:
+        return str_lst[0]
     
-    return f"{delimiter.join(lst[:-1])} {word} {lst[-1]}"
+    return f"{delimiter.join(str_lst[:-1])} {word} {str_lst[-1]}"
 
 def player_chooses_square(board):
     while True:
         valid_choices = [str(num) for num in empty_squares(board)]
-        prompt(f"Choose a square: {return_choice_string(valid_choices)}")
+        prompt(f"Choose a square: {join_or(valid_choices)}")
         square = input().strip()
         if square in valid_choices:
             break
@@ -81,12 +87,21 @@ def computer_chooses_square(board):
     square = random.choice(empty_squares(board))
     board[square] = COMPUTER_MARKER
 
+def print_score(score):
+    return f"""Current scores are: 
+                Player: {score['Player']},
+                Computer: {score['Computer']}"""
+
 def play_tic_tac_toe():
+    score = {
+        'Player': 0,
+        'Computer': 0,
+    }
     while True:
         board = initialize_board()
 
         while True:
-            display_board(board)
+            display_board(board, score)
 
             player_chooses_square(board)
 
@@ -98,9 +113,17 @@ def play_tic_tac_toe():
                 break
 
         if someone_won(board):
-            prompt(f"{detect_winner(board)} won!")
+            winner = detect_winner(board)
+            score[winner] += 1
+            prompt(f"{winner} won!")
         else:
             prompt("It's a tie!")
+
+        if NUMBER_OF_GAMES in score.values():
+            winner = [key for key, value in score.items() if value == NUMBER_OF_GAMES][0]
+            prompt(f"This match was won by {winner}! Thanks for playing!")
+            # When a match is won the programme will stop
+            break
 
         prompt("Play again? (y or n)")
         answer = input().lower()[0]
