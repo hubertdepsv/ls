@@ -105,7 +105,12 @@ def computer_chooses_square(board):
     if len(empty_squares(board)) == 0:
         return
 
-    square = find_at_risk_square(board, 'offensive')
+    square = None
+    if 5 in empty_squares(board):
+        square = 5
+
+    if not square:
+        square = find_at_risk_square(board, 'offensive')
 
     if not square:
         square = find_at_risk_square(board, 'defensive')
@@ -118,6 +123,9 @@ def print_score(score):
     return f"""Current scores are:
                 Player: {score['Player']},
                 Computer: {score['Computer']}"""
+
+def invalid_input(answer):
+    return answer not in ['y', 'Y', 'n', 'N']
 
 def play_tic_tac_toe():
     score = {
@@ -154,8 +162,15 @@ def play_tic_tac_toe():
             # When a match is won the programme will stop
             break
 
-        prompt("Play again? (y or n)")
-        answer = input().lower()[0]
+        # prompt("Play again? (y or n)")
+        # answer = input().lower()[0]
+        prompt(f"Play again? Valid answers: {join_or(['y', 'n', 'Y', 'N'])}")
+        answer = input().lower()
+
+        while invalid_input(answer):
+            prompt("""Sorry, that's not a valid choice.
+    Please answer again.""")
+            answer = input().lower()
 
         if answer != 'y':
             break
