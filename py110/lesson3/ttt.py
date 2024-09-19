@@ -5,6 +5,7 @@ INITIAL_MARKER = ' '
 HUMAN_MARKER = 'X'
 COMPUTER_MARKER = 'O'
 GAMES_NUMBER = 5
+PLAYERS = ['Player', 'Computer']
 
 WINNING_LINES = [
     [1, 2, 3], [4, 5, 6], [7, 8, 9],
@@ -127,6 +128,18 @@ def print_score(score):
 def invalid_input(answer):
     return answer not in ['y', 'Y', 'n', 'N']
 
+def alternate_player(current_player):
+    if current_player not in PLAYERS:
+        return f"Current player {current_player} not in {', '.join(PLAYERS)}"
+    if current_player == PLAYERS[0]:
+        return 'Computer'
+    return 'Player'
+
+def choose_square(board, current_player):
+    if current_player == PLAYERS[0]:
+        return player_chooses_square(board)
+    return computer_chooses_square(board)
+
 def play_tic_tac_toe():
     score = {
         'Player': 0,
@@ -134,22 +147,19 @@ def play_tic_tac_toe():
     }
     while True:
         board = initialize_board()
+        current_player = PLAYERS[0]
 
         while True:
             display_board(board, score)
-
-            player_chooses_square(board)
-
-            if someone_won(board) or board_full(board):
-                break
-
-            computer_chooses_square(board)
+            choose_square(board, current_player)
+            current_player = alternate_player(current_player)
             if someone_won(board) or board_full(board):
                 break
 
         if someone_won(board):
             winner = detect_winner(board)
             score[winner] += 1
+            display_board(board, score)
             prompt(f"{winner} won!")
         else:
             prompt("It's a tie!")
