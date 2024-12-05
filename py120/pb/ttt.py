@@ -105,6 +105,18 @@ class TTTGame:
         self.board.display()
 
         while True:
+            # initialise the board again
+            self.board = Board()
+            self.board.display_with_clear()
+            self.play_game()
+            
+            if not self._play_again():
+                break
+
+        self.display_goodbye_message()
+    
+    def play_game(self):
+        while True:
             self.human_moves()
             if self.is_game_over():
                 break
@@ -117,7 +129,12 @@ class TTTGame:
 
         self.board.display_with_clear()
         self.display_results()
-        self.display_goodbye_message()
+
+    def _play_again(self):
+        play_again = input("Do you want to play again? (y or n): ").lower().strip()
+        if play_again.startswith('n'):
+                return False
+        return True
 
     def display_welcome_message(self):
         clear_screen()
@@ -135,13 +152,19 @@ class TTTGame:
         else:
             print("A tie game. How boring.")
 
+    @staticmethod
+    def _join_or(keys):
+        if len(keys) < 3:
+            return " or ".join(keys)
+        return f"{', '.join(keys[:-1])} or {keys[-1]}"
+
     def human_moves(self):
         choice = None
         valid_choices = self.board.unused_squares()
         while True:
             choices_list = [str(choice) for choice in valid_choices]
-            choices_str = ", ".join(choices_list)
-            prompt = f"Choose a square ({choices_str}): "
+            choices_str = self._join_or(choices_list)
+            prompt = f"Choose a square: {choices_str}: "
             choice = input(prompt)
 
             try:
