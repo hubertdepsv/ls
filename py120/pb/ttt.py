@@ -96,11 +96,15 @@ class TTTGame:
         (1, 5, 9),  # diagonal: top-left to bottom-right
         (3, 5, 7),  # diagonal: top-right to bottom-left
     )
+    GAMES_LIMIT = 3
 
     def __init__(self):
         self.board = Board()
         self.human = Human()
         self.computer = Computer()
+        self.human_score = 0
+        self.computer_score = 0
+        self.first_player = self.human
 
     def play(self):
         self.display_welcome_message()
@@ -108,6 +112,9 @@ class TTTGame:
 
         while True:
             self.play_game()
+
+            if self.human_score + self.computer_score == TTTGame.GAMES_LIMIT:
+                break
             
             if not self._play_again():
                 break
@@ -115,21 +122,32 @@ class TTTGame:
         self.display_goodbye_message()
     
     def play_game(self):
+        current_player = self.first_player
         self.board = Board()
         self.board.display_with_clear()
-        while True:
-            self.human_moves()
-            if self.is_game_over():
-                break
+        print(f"The score is now:\n"
+              f"Human: {self.human_score}\n"
+              f"Computer: {self.computer_score}")
 
-            self.computer_moves()
+        while True:
+            self.player_moves(current_player)
             if self.is_game_over():
                 break
 
             self.board.display_with_clear()
+            current_player = self.toggle_player(current_player)
 
         self.board.display_with_clear()
         self.display_results()
+
+    def toggle_player(self, player):
+        return self.computer if player == self.human else self.human
+
+    def player_moves(self, current_player):
+        if current_player == self.human:
+            self.human_moves()
+        else:
+            self.computer_moves()
 
     def _play_again(self):
         play_again = input("Do you want to play again? (y or n): ").lower().strip()
@@ -147,8 +165,10 @@ class TTTGame:
 
     def display_results(self):
         if self.is_winner(self.human):
+            self.human_score += 1
             print("You won! Congratulations!")
         elif self.is_winner(self.computer):
+            self.computer_score += 1
             print("I won! I won! Take that, human!")
         else:
             print("A tie game. How boring.")
