@@ -115,12 +115,12 @@ class TTTGame:
 
             if self.human_score + self.computer_score == TTTGame.GAMES_LIMIT:
                 break
-            
+
             if not self._play_again():
                 break
 
         self.display_goodbye_message()
-    
+
     def play_game(self):
         current_player = self.first_player
         self.board = Board()
@@ -152,7 +152,7 @@ class TTTGame:
     def _play_again(self):
         play_again = input("Do you want to play again? (y or n): ").lower().strip()
         if play_again.startswith('n'):
-                return False
+            return False
         return True
 
     def display_welcome_message(self):
@@ -202,16 +202,17 @@ class TTTGame:
 
     def detect_immediate_win_in_row_for_player(self, player, row):
         opponent = self.computer if player == self.human else self.human
-        if self.board.count_markers_for(player, row) == 2 and self.board.count_markers_for(opponent, row) == 0:
+        if (self.board.count_markers_for(player, row) == 2 and
+            self.board.count_markers_for(opponent, row) == 0):
             return True
-        
+
         return False
-    
+
     def find_square_to_mark(self, row):
         for key in row:
             if self.board.squares[key].is_unused():
                 return key
-            
+
         return None
 
     def computer_moves(self):
@@ -222,7 +223,7 @@ class TTTGame:
                 break
             if self.detect_immediate_win_in_row_for_player(self.human, winning_row):
                 row = winning_row
-        
+
         choice = None
         if row:
             choice = self.find_square_to_mark(row)
