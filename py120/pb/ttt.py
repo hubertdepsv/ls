@@ -67,7 +67,7 @@ class Board:
         return markers.count(player.marker)
 
     def display_with_clear(self):
-        clear_screen()
+        # clear_screen()
         print("\n")
         self.display()
 
@@ -105,9 +105,6 @@ class TTTGame:
         self.board.display()
 
         while True:
-            # initialise the board again
-            self.board = Board()
-            self.board.display_with_clear()
             self.play_game()
             
             if not self._play_again():
@@ -116,6 +113,8 @@ class TTTGame:
         self.display_goodbye_message()
     
     def play_game(self):
+        self.board = Board()
+        self.board.display_with_clear()
         while True:
             self.human_moves()
             if self.is_game_over():
@@ -164,7 +163,7 @@ class TTTGame:
         while True:
             choices_list = [str(choice) for choice in valid_choices]
             choices_str = self._join_or(choices_list)
-            prompt = f"Choose a square: {choices_str}: "
+            prompt = f"Choose a square among {choices_str}: "
             choice = input(prompt)
 
             try:
@@ -179,9 +178,32 @@ class TTTGame:
 
         self.board.mark_square_at(choice, self.human.marker)
 
+    def detect_immediate_threat_in_row(self, row):
+        if self.board.count_markers_for(row) == 2:
+            return True
+        
+        return False
+    
+    def find_square_to_defend(self, row):
+        for key in row:
+            if self.board.squares[key].is_unused():
+                return key
+            
+        return None
+
     def computer_moves(self):
-        valid_choices = self.board.unused_squares()
-        choice = random.choice(valid_choices)
+        row = None
+        for winning_row in TTTGame.POSSIBLE_WINNING_ROWS:
+            if self.detect_immediate_threat_in_row(winning_row):
+                row = winning_row
+        
+        choice = None
+        if row:
+            choice = self.find_square_to_defend(row)
+        else:
+            valid_choices = self.board.unused_squares()
+            choice = random.choice(valid_choices)
+        print(row)
         self.board.mark_square_at(choice, self.computer.marker)
 
     def is_game_over(self):
