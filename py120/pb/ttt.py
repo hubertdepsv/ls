@@ -27,6 +27,8 @@ class Square:
         return self.marker == Square.INITIAL_MARKER
 
 class Board:
+    CENTER_SQUARE = 5
+
     def __init__(self):
         self.squares = {key: Square() for key in range(1, 10)}
 
@@ -67,7 +69,7 @@ class Board:
         return markers.count(player.marker)
 
     def display_with_clear(self):
-        # clear_screen()
+        clear_screen()
         print("\n")
         self.display()
 
@@ -178,13 +180,14 @@ class TTTGame:
 
         self.board.mark_square_at(choice, self.human.marker)
 
-    def detect_immediate_threat_in_row(self, row):
-        if self.board.count_markers_for(row) == 2:
+    def detect_immediate_win_in_row_for_player(self, player, row):
+        opponent = self.computer if player == self.human else self.human
+        if self.board.count_markers_for(player, row) == 2 and self.board.count_markers_for(opponent, row) == 0:
             return True
         
         return False
     
-    def find_square_to_defend(self, row):
+    def find_square_to_mark(self, row):
         for key in row:
             if self.board.squares[key].is_unused():
                 return key
@@ -194,16 +197,20 @@ class TTTGame:
     def computer_moves(self):
         row = None
         for winning_row in TTTGame.POSSIBLE_WINNING_ROWS:
-            if self.detect_immediate_threat_in_row(winning_row):
+            if self.detect_immediate_win_in_row_for_player(self.computer, winning_row):
+                row = winning_row
+                break
+            if self.detect_immediate_win_in_row_for_player(self.human, winning_row):
                 row = winning_row
         
         choice = None
         if row:
-            choice = self.find_square_to_defend(row)
+            choice = self.find_square_to_mark(row)
+        elif self.board.squares[Board.CENTER_SQUARE].is_unused():
+            choice = Board.CENTER_SQUARE
         else:
             valid_choices = self.board.unused_squares()
             choice = random.choice(valid_choices)
-        print(row)
         self.board.mark_square_at(choice, self.computer.marker)
 
     def is_game_over(self):
