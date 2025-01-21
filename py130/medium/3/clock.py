@@ -1,22 +1,22 @@
 class Clock:
+    ONE_HOUR = 60
+    ONE_DAY = 24 * ONE_HOUR
+    
     def __init__(self, hours, minutes):
         self.hours = hours
         self.minutes = minutes if minutes else 0
+        self.total_minutes = self.minutes + self.hours * Clock.ONE_HOUR
 
     @classmethod
     def at(cls, hours, minutes=None):
         return Clock(hours, minutes)
 
     def __add__(self, other):
-        total_minutes = other + self.hours * 60 + self.minutes
-        _, other = divmod(total_minutes, 1440)
-        hours, minutes = divmod(other, 60)
+        hours, minutes = self._get_new_total(other + self.total_minutes)
         return Clock.at(hours, minutes)
 
     def __sub__(self, other):
-        total_minutes = self.hours * 60 + self.minutes - other
-        _, other = divmod(total_minutes, 1440)
-        hours, minutes = divmod(other, 60)
+        hours, minutes = self._get_new_total(self.total_minutes - other)
         return Clock.at(hours, minutes)
 
     def __str__(self):
@@ -26,3 +26,8 @@ class Clock:
     
     def __eq__(self, other):
         return self.hours == other.hours and self.minutes == other.minutes
+    
+    @staticmethod
+    def _get_new_total(total_minutes):
+        _, hours = divmod(total_minutes, Clock.ONE_DAY)
+        return divmod(hours, Clock.ONE_HOUR)
