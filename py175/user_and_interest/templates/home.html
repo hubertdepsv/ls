@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <h2 class="content-subhead">Users</h2>
+
+  <ul class="pure-menu-list">
+    {% for user in users %}
+      <li class="pure-menu-item">
+        <a href="/users/{{ user }}" class="pure-menu-link">{{ user }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+
+{% endblock %}
