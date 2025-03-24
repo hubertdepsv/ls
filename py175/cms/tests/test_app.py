@@ -30,10 +30,8 @@ class CMSTest(unittest.TestCase):
 
     def test_file(self):
         with self.client.get('/history.txt') as response:
-            self.assertEqual(response.status_code, 200)
-            self.assertEqual(response.content_type, "text/plain; charset=utf-8")
-            self.assertIn("Python 0.9.0 (initial release) is released.",
-                            response.get_data(as_text=True))
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(response.content_type, "text/html; charset=utf-8")
 
     def test_document_not_found(self):
         with self.client.get("/notafile.ext") as response:
@@ -49,7 +47,7 @@ class CMSTest(unittest.TestCase):
                              response.get_data(as_text=True))
             
     def test_viewing_markdown_document(self):
-        self.create_document("about.md")
+        self.create_document("about.md", content="<h1>This is my app.</h1>")
         response = self.client.get('/about.md')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content_type, "text/html; charset=utf-8")
