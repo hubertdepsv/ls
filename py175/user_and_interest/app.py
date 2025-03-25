@@ -3,21 +3,6 @@ import yaml
 
 app = Flask(__name__)
 
-# {
-#     'jamy': {
-#         'email': 'jamy.rustenburg@gmail.com', 
-#         'interests': ['woodworking', 'cooking', 'reading']
-#     }, 
-#     'nora': {
-#         'email': 'nora.alnes@yahoo.com', 
-#         'interests': ['cycling', 'basketball', 'economics']
-#     }, 
-#     'hiroko': {
-#         'email': 'hiroko.ohara@hotmail.com', 
-#         'interests': []
-#     }
-# }
-
 def interest_list(interests):
     return ", ".join(interests)
 
