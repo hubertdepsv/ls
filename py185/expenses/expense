@@ -1,0 +1,74 @@
+#!/usr/bin/env python
+
+from textwrap import dedent
+import sys
+from datetime import date
+
+import psycopg2
+from psycopg2 import extras
+
+def display_help():
+    print(dedent("""
+        An expense recording system
+
+        Commands:
+
+        add AMOUNT MEMO - record a new expense
+        clear - delete all expenses
+        list - list all expenses
+        delete NUMBER - remove expense with id NUMBER
+        search QUERY - list expenses with a matching memo field
+    """))
+
+def list_expenses():
+    connection = psycopg2.connect(dbname='expensesdb')
+    try:
+        with connection:
+            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
+                cursor.execute("SELECT * FROM expenses ORDER BY created_on ASC")
+                result = cursor.fetchall()
+    finally:
+        connection.close()
+
+    for expense in result:
+        columns = [
+            str(expense['id']).rjust(3),
+            str(expense['created_on']),
+            str(expense['amount']).rjust(12),
+            str(expense['memo'])
+        ]
+        print(" | ".join(columns))
+
+def add_expense(amount, memo):
+    connection = psycopg2.connect(dbname='expenses')
+    try:
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute(f"""
+                    INSERT INTO expenses
+                    (amount, memo, created_on)
+                    VALUES
+                    ('{amount}', '{memo}', '{date.today()}')
+                """)
+    finally:
+        connection.close()
+
+def main():
+    if len(sys.argv) > 1:
+        command = sys.argv[1]
+        if command == "list":
+            list_expenses()
+            return
+        elif command == "add":
+            if len(sys.argv) >= 4:
+                amount = sys.argv[2]
+                memo = sys.argv[3]
+                add_expense(amount, memo)
+                return
+            else:
+                print("You must provide an amount and memo.")
+                return
+    display_help()
+
+if __name__ == "__main__":
+    main()
