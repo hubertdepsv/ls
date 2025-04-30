@@ -6,64 +6,84 @@ from datetime import date
 
 import psycopg2
 from psycopg2 import extras
+from contextlib import contextmanager
 
 class ExpenseData:
-    def list_expenses(self):
-        connection = psycopg2.connect(dbname='expensesdb')
-        try:
-            with connection:
-                with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                    cursor.execute("SELECT * FROM expenses ORDER BY created_on ASC")
-                    result = cursor.fetchall()
-        finally:
-            connection.close()
-
-        for expense in result:
-            columns = [
-                str(expense['id']).rjust(3),
-                str(expense['created_on']),
-                str(expense['amount']).rjust(12),
-                str(expense['memo'])
-            ]
-            print(" | ".join(columns))
-
-    def add_expense(self, amount, memo):
+    @contextmanager
+    def _database_connect(self):
         connection = psycopg2.connect(dbname='expenses')
         try:
             with connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        """
-                            INSERT INTO expenses
-                            (amount, memo, created_on)
-                            VALUES
-                            (%s, %s, %s)
-                        """,
-                        (amount, memo, date.today())
-                    )
+                yield connection
         finally:
             connection.close()
+
+    def list_expenses(self):
+        with self._database_connect('expensesdb') as connection:
+            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
+                cursor.execute("SELECT * FROM expenses ORDER BY created_on ASC")
+                result = cursor.fetchall()
+
+        self._display_expenses(result)
+
+    def add_expense(self, amount, memo):
+        with self._database_connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                        INSERT INTO expenses
+                        (amount, memo, created_on)
+                        VALUES
+                        (%s, %s, %s)
+                    """,
+                    (amount, memo, date.today())
+                )
+
+    def search_expenses(self, query):
+        with self._database_connect() as connection:
+            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
+                sql = "SELECT * FROM expenses WHERE memo ILIKE %s"
+                cursor.execute(sql, (f"%{query}%",))
+                result = cursor.fetchall()
+
+        self._display_expenses(result)
+
+    def _display_expenses(self, expenses):
+        for expense in expenses:
+            columns = [
+                str(expense["id"]).rjust(3),
+                str(expense["created_on"]),
+                str(expense["amount"]).rjust(12),
+                str(expense["memo"])
+            ]
+            print(" | ".join(columns))
 
 class CLI:
     def __init__(self):
         self.application = ExpenseData()
         
-    def run(self, args):
-        if len(args) > 0:
-            command = args[0]
-            if command == "list":
-                self.expense.list_expenses()
-                return
-            elif command == "add":
-                if len(args) >= 3:
-                    amount = args[1]
-                    memo = args[2]
-                    self.expense.add_expense(amount, memo)
-                    return
-                else:
+    def run(self, arguments):
+        if not arguments:
+            command = None
+        else:
+            command = arguments.pop(0)
+
+        match command:
+            case "add":
+                if len(arguments) < 2:
                     print("You must provide an amount and memo.")
                     return
-        self.display_help()
+                amount, memo = arguments
+                self.application.add_expense(amount, memo)
+            case "list":
+                self.application.list_expenses()
+            case "search":
+                if len(arguments) < 1:
+                    print("You must provide a search query.")
+                    return
+                self.application.search_expenses(arguments[0])
+            case _:
+                self.display_help()
 
     def display_help(self):
         print(dedent("""
