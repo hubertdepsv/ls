@@ -7,71 +7,77 @@ from datetime import date
 import psycopg2
 from psycopg2 import extras
 
-def display_help():
-    print(dedent("""
-        An expense recording system
+class ExpenseData:
+    def list_expenses(self):
+        connection = psycopg2.connect(dbname='expensesdb')
+        try:
+            with connection:
+                with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
+                    cursor.execute("SELECT * FROM expenses ORDER BY created_on ASC")
+                    result = cursor.fetchall()
+        finally:
+            connection.close()
 
-        Commands:
+        for expense in result:
+            columns = [
+                str(expense['id']).rjust(3),
+                str(expense['created_on']),
+                str(expense['amount']).rjust(12),
+                str(expense['memo'])
+            ]
+            print(" | ".join(columns))
 
-        add AMOUNT MEMO - record a new expense
-        clear - delete all expenses
-        list - list all expenses
-        delete NUMBER - remove expense with id NUMBER
-        search QUERY - list expenses with a matching memo field
-    """))
+    def add_expense(self, amount, memo):
+        connection = psycopg2.connect(dbname='expenses')
+        try:
+            with connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        """
+                            INSERT INTO expenses
+                            (amount, memo, created_on)
+                            VALUES
+                            (%s, %s, %s)
+                        """,
+                        (amount, memo, date.today())
+                    )
+        finally:
+            connection.close()
 
-def list_expenses():
-    connection = psycopg2.connect(dbname='expensesdb')
-    try:
-        with connection:
-            with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
-                cursor.execute("SELECT * FROM expenses ORDER BY created_on ASC")
-                result = cursor.fetchall()
-    finally:
-        connection.close()
-
-    for expense in result:
-        columns = [
-            str(expense['id']).rjust(3),
-            str(expense['created_on']),
-            str(expense['amount']).rjust(12),
-            str(expense['memo'])
-        ]
-        print(" | ".join(columns))
-
-def add_expense(amount, memo):
-    connection = psycopg2.connect(dbname='expenses')
-    try:
-        with connection:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    """
-                        INSERT INTO expenses
-                        (amount, memo, created_on)
-                        VALUES
-                        (%s, %s, %s)
-                    """,
-                    (amount, memo, date.today())
-                )
-    finally:
-        connection.close()
-
-def main():
-    if len(sys.argv) > 1:
-        command = sys.argv[1]
-        if command == "list":
-            list_expenses()
-            return
-        elif command == "add":
-            if len(sys.argv) >= 4:
-                amount = sys.argv[2]
-                memo = sys.argv[3]
-                add_expense(amount, memo)
+class CLI:
+    def __init__(self):
+        self.application = ExpenseData()
+        
+    def run(self, args):
+        if len(args) > 0:
+            command = args[0]
+            if command == "list":
+                self.expense.list_expenses()
                 return
-            else:
-                print("You must provide an amount and memo.")
-                return
-    display_help()
+            elif command == "add":
+                if len(args) >= 3:
+                    amount = args[1]
+                    memo = args[2]
+                    self.expense.add_expense(amount, memo)
+                    return
+                else:
+                    print("You must provide an amount and memo.")
+                    return
+        self.display_help()
+
+    def display_help(self):
+        print(dedent("""
+            An expense recording system
+
+            Commands:
+
+            add AMOUNT MEMO - record a new expense
+            clear - delete all expenses
+            list - list all expenses
+            delete NUMBER - remove expense with id NUMBER
+            search QUERY - list expenses with a matching memo field
+        """))
 
 if __name__ == "__main__":
-    main()
+    cli = CLI()
+    cli.run(sys.args[1:])
