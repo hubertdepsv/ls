@@ -44,12 +44,15 @@ def add_expense(amount, memo):
     try:
         with connection:
             with connection.cursor() as cursor:
-                cursor.execute(f"""
-                    INSERT INTO expenses
-                    (amount, memo, created_on)
-                    VALUES
-                    ('{amount}', '{memo}', '{date.today()}')
-                """)
+                cursor.execute(
+                    """
+                        INSERT INTO expenses
+                        (amount, memo, created_on)
+                        VALUES
+                        (%s, %s, %s)
+                    """,
+                    (amount, memo, date.today())
+                )
     finally:
         connection.close()
 
