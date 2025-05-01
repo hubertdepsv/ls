@@ -11,7 +11,7 @@ from contextlib import contextmanager
 class ExpenseData:
     @contextmanager
     def _database_connect(self):
-        connection = psycopg2.connect(dbname='expenses')
+        connection = psycopg2.connect(dbname='expensesdb')
         try:
             with connection:
                 yield connection
@@ -19,7 +19,7 @@ class ExpenseData:
             connection.close()
 
     def list_expenses(self):
-        with self._database_connect('expensesdb') as connection:
+        with self._database_connect() as connection:
             with connection.cursor(cursor_factory=extras.DictCursor) as cursor:
                 cursor.execute("SELECT * FROM expenses ORDER BY created_on ASC")
                 result = cursor.fetchall()
@@ -100,4 +100,4 @@ class CLI:
 
 if __name__ == "__main__":
     cli = CLI()
-    cli.run(sys.args[1:])
+    cli.run(sys.argv[1:])
