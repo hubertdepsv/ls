@@ -9,6 +9,9 @@ from psycopg2 import extras
 from contextlib import contextmanager
 
 class ExpenseData:
+    def __init__(self):
+        self._setup_schema()
+
     @contextmanager
     def _database_connect(self):
         connection = psycopg2.connect(dbname='expensesdb')
@@ -24,7 +27,10 @@ class ExpenseData:
                 cursor.execute("SELECT * FROM expenses ORDER BY created_on ASC")
                 result = cursor.fetchall()
 
+        self._display_count(len(result))
         self._display_expenses(result)
+        if len(result) > 1:
+            self._display_total(result)
 
     def add_expense(self, amount, memo):
         with self._database_connect() as connection:
@@ -46,7 +52,10 @@ class ExpenseData:
                 cursor.execute(sql, (f"%{query}%",))
                 result = cursor.fetchall()
 
+        self._display_count(len(result))
         self._display_expenses(result)
+        if len(result) > 1:
+            self._display_total(result)
 
     def delete_expense(self, idnum):
         with self._database_connect() as connection:
@@ -60,6 +69,12 @@ class ExpenseData:
                 else:
                     print(f"There is no expense with id '{idnum}'.")
 
+    def delete_all_expenses(self):
+        with self._database_connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("DELETE FROM expenses")
+                print("All expenses have been deleted.")
+
     def _display_expenses(self, expenses):
         for expense in expenses:
             columns = [
@@ -69,6 +84,38 @@ class ExpenseData:
                 str(expense["memo"])
             ]
             print(" | ".join(columns))
+
+    def _display_count(self, count):
+        if count == 0:
+            print("There are no expenses.")
+        elif count == 1:
+            print("There is 1 expense.")
+        else:
+            print(f"There are {count} expenses.")
+
+    def _display_total(self, expenses):
+        amount_sum = sum([expense["amount"] for expense in expenses])
+        print("-" * 50)
+        print(f"Total {str(round(amount_sum, 2)).rjust(25)}")
+
+    def _setup_schema(self):
+        with self._database_connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT COUNT(*)
+                    FROM information_schema.tables
+                    WHERE table_schema = 'public' AND table_name = 'expenses';
+                """)
+                result = cursor.fetchone()
+                if result[0] == 0:
+                    cursor.execute("""
+                        CREATE TABLE expenses (
+                            id serial PRIMARY KEY,
+                            amount numeric(6,2) NOT NULL CHECK (amount >= 0.01),
+                            memo text NOT NULL,
+                            created_on date NOT NULL
+                        );
+                    """)
 
 class CLI:
     def __init__(self):
@@ -87,6 +134,11 @@ class CLI:
                     return
                 amount, memo = arguments
                 self.application.add_expense(amount, memo)
+            case "clear":
+                print("This will remove all expenses. Are you sure? (y/n)")
+                response = input().strip()
+                if response.lower() == "y":
+                    self.application.delete_all_expenses()
             case "delete":
                 if len(arguments) < 1:
                     print("You must provide an expense ID.")
