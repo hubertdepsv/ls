@@ -1,3 +1,4 @@
+import os
 import secrets
 from functools import wraps
 from flask import (
@@ -11,13 +12,11 @@ from flask import (
 )
 from werkzeug.exceptions import NotFound
 from todos.utils import (
-    delete_todo_by_id,
     error_for_list_title, 
     error_for_todo,
     find_todo_by_id,
     is_list_completed,
     is_todo_completed,
-    mark_all_completed,
     sort_items,
     todos_remaining,
 )
@@ -159,4 +158,7 @@ def update_list(lst, list_id):
     return redirect(url_for('show_list', list_id=list_id))
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5003)
+    if os.environ.get('FLASK_ENV') == 'production':
+        app.run(debug=False)
+    else:
+        app.run(debug=True, port=5003)
